@@ -3,7 +3,7 @@ import CharacterManager from "./CharacterManager";
 function App() {
   return (
     <div>
-      <h1>Character & Party Manager</h1>
+      <h1>CIMS</h1>
       <CharacterManager />
     </div>
   );

@@ -1,16 +1,11 @@
-import { Character } from "./CharacterManager";
+import { Character } from "./types";
+import { updateCharacter } from "./CharacterManagerActions";
 
 export const handleImageUpload = (
   event: React.ChangeEvent<HTMLInputElement>,
   charId: number,
-  field: string,
+  field: keyof Character,
   characters: Character[],
-  updateCharacter: (
-    id: number,
-    field: keyof Character,
-    value: any,
-    setCharacters: React.Dispatch<React.SetStateAction<Character[]>>
-  ) => void,
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>,
   itemType?: string,
   itemId?: number
@@ -22,29 +17,20 @@ export const handleImageUpload = (
   reader.onload = (e) => {
     const imageData = e.target?.result as string;
 
-    const charIndex = characters.findIndex((c) => c.id === charId);
-    if (charIndex === -1) return;
+    if (itemType && itemId !== undefined) {
+      const charIndex = characters.findIndex((c) => c.id === charId);
+      if (charIndex === -1) return;
 
-    const updatedCharacters = [...characters];
-
-    if (field === "portrait") {
-      updatedCharacters[charIndex].portrait = imageData;
-    } else if (itemType && itemId !== undefined) {
+      const updatedCharacters = [...characters];
       let updatedList;
       let targetField;
 
       switch (itemType) {
-        case "weapon":
-          updatedList = [...updatedCharacters[charIndex].equippedWeapons];
-          targetField = "equippedWeapons";
-          break;
-        case "armor":
-          updatedList = [...updatedCharacters[charIndex].equippedArmor];
-          targetField = "equippedArmor";
-          break;
-        case "item":
-          updatedList = [...updatedCharacters[charIndex].equippedItems];
-          targetField = "equippedItems";
+        case "equippedWeapons":
+        case "equippedArmor":
+        case "equippedItems":
+          updatedList = [...updatedCharacters[charIndex][itemType]];
+          targetField = itemType;
           break;
         default:
           return;
@@ -56,11 +42,11 @@ export const handleImageUpload = (
           ...updatedList[itemIndex],
           thumbnail: imageData
         };
-        updatedCharacters[charIndex][targetField] = updatedList;
+        updateCharacter(charId, targetField as keyof Character, updatedList, setCharacters);
       }
+    } else {
+      updateCharacter(charId, field, imageData, setCharacters);
     }
-
-    setCharacters(updatedCharacters);
   };
   reader.readAsDataURL(file);
 };
@@ -69,8 +55,7 @@ export const handlePortraitUpload = (
   event: React.ChangeEvent<HTMLInputElement>,
   charId: number,
   characters: Character[],
-  updateCharacter: (id: number, field: keyof Character, value: any, setCharacters: React.Dispatch<React.SetStateAction<Character[]>>) => void,
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>
 ) => {
-  handleImageUpload(event, charId, "portrait", characters, updateCharacter, setCharacters);
+  handleImageUpload(event, charId, "portrait", characters, setCharacters);
 };

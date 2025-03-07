@@ -22,6 +22,17 @@ body {
 }
 
 /* Headings */
+h1, h2, h3 {
+  color: #4CAF50;
+  margin-bottom: 15px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 2rem;
+}
+
 h2, h3, h4, h5 {
   font-family: 'Solander', sans-serif;
   color: #4CAF50;
@@ -31,6 +42,7 @@ h2, h3, h4, h5 {
 
 /* General Button Styling */
 button {
+  font-family: 'Solander', sans-serif;
   background-color: white; /* White background */
   color: black; /* Black text */
   border: 1px solid #444; /* Thin border for a streamlined look */
@@ -106,7 +118,7 @@ button.add-weapon, button.add-armor, button.add-magic-item {
 /* Form Elements */
 input, select, textarea {
   font-family: inherit;
-  padding: 4px; /* Reduced from 6px */
+  padding: 6px; /* Reduced from 6px */
   margin: 4px 0; /* Reduced from 5px 0 */
   border: 1px solid #444;
   border-radius: 4px;
@@ -148,8 +160,10 @@ label {
   align-items: center;
 }
 
-.character-tabs button {
-  padding: 6px 12px;
+.character-tabs button.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #388E3C;
 }
 
 /* Streamlined character tabs */
@@ -286,12 +300,27 @@ img {
   background-color: #45a049;
 }
 
+/* Change portrait size from 300px to 240px (20% reduction) */
 .character-portrait {
-  width: 300px; /* Increased by 50% from 200px */
-  height: 300px; /* Increased by 50% from 200px */
+  width: 240px; 
+  height: 240px;
   object-fit: cover;
   border-radius: 10px;
   margin-bottom: 10px; /* Add margin to separate from the file input */
+}
+
+.empty-portrait {
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2a2a2a;
+  color: #777;
+  border-radius: 10px;
+  border: 2px dashed #444;
+  margin-bottom: 10px;
+  font-style: italic;
 }
 
 /* Sections */
@@ -342,7 +371,7 @@ img {
 
 /* Add a compact layout class for tighter form controls */
 .form-group {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
 }
@@ -787,14 +816,372 @@ h5 {
   background: none;
   border: none;
   cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
 }
 
 .remove-button img {
   width: 24px;
   height: 24px;
+}
+
+.remove-button:hover {
+  transform: scale(1.1);
+}
+
+/* Make sure all the old remove-* classes adopt this styling too */
+.remove-skill,
+.remove-feat,
+.remove-spell,
+.remove-slot,
+.remove-item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: transform 0.2s;
 }
 
-.remove-button img:hover {
+.remove-skill img,
+.remove-feat img,
+.remove-spell img,
+.remove-slot img,
+.remove-item img {
+  width: 24px;
+  height: 24px;
+}
+
+.remove-skill:hover,
+.remove-feat:hover,
+.remove-spell:hover,
+.remove-slot:hover,
+.remove-item:hover {
   transform: scale(1.1);
+}
+
+/* Add these styles to your existing CSS file */
+
+/* Character Section Styling */
+.character-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background-color: #1e1e1e;
+}
+
+/* Inventory Section Styling */
+.inventory-section {
+  margin-bottom: 15px;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background-color: #252525;
+}
+
+.inventory-entry {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background-color: #2a2a2a;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.equipment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-grow: 1;
+}
+
+.item-image {
+  max-width: 100px;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #444;
+}
+
+/* Spell Entry Styling */
+.spell-entry {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background-color: #2a2a2a;
+}
+
+.spell-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* Button Styling */
+.add-weapon, .add-armor, .add-magic-item, .add-item, 
+.add-spell, .add-slot, .remove-item, .remove-spell, .remove-slot {
+  background-color: white;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+}
+
+.add-weapon:hover, .add-armor:hover, .add-magic-item:hover, .add-item:hover,
+.add-spell:hover, .add-slot:hover, .remove-item:hover, .remove-spell:hover, .remove-slot:hover {
+  background-color: #f4f4f4;
+}
+
+/* Section Headers */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Add two-column layout for character stats */
+.character-stats-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .character-stats-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Update portrait section styling to ensure button stays at the bottom */
+.portrait-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 15px;
+  margin-top: 10px;
+  width: 240px; /* Match portrait width */
+}
+
+.character-portrait {
+  width: 240px; 
+  height: 240px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.empty-portrait {
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #2a2a2a;
+  color: #777;
+  border-radius: 10px;
+  border: 2px dashed #444;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
+.choose-file-button {
+  width: 100%; /* Make button full width of portrait */
+  background-color: white;
+  color: black;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+/* Style for manager controls area */
+.manager-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Character tabs will take left side */
+.character-tabs {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Import/export buttons on the right */
+.import-export {
+  display: flex;
+  gap: 10px;
+}
+
+/* Style for import button */
+button.import {
+  background-color: white;
+  color: black;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button.import:hover {
+  background-color: #f4f4f4;
+}
+
+button.import img {
+  width: 20px;
+  height: 20px;
+}
+
+/* Style for export button */
+button.export {
+  background-color: white;
+  color: black;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button.export:hover {
+  background-color: #f4f4f4;
+}
+
+button.export img {
+  width: 20px;
+  height: 20px;
+}
+
+/* Delete character button styling */
+.delete-character {
+  background-color: #e53935;
+  color: white;
+  margin: 20px auto;
+  display: block;
+  padding: 8px 16px;
+  font-family: 'Solander', sans-serif;
+}
+
+.delete-character:hover {
+  background-color: #d32f2f;
+  color: white;
+}
+
+/* Character Manager styling */
+.character-manager {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Consistent styling for remove buttons */
+.remove-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+  color: white;
+}
+
+.remove-button img {
+  width: 24px;
+  height: 24px;
+}
+
+.remove-button:hover {
+  transform: scale(1.1);
+}
+
+/* Stat rows */
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.stat-row label {
+  min-width: 100px;
+}
+
+.stat-row span {
+  margin-left: 5px;
+  color: #aaa;
+}
+
+/* Spell/skill/feat styling */
+.spell-entry,
+.skill-entry,
+.feat-entry {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 5px;
+  background-color: #2a2a2a;
+}
+
+/* Ensure all button variants maintain the font and text color */
+button:hover,
+button.add, button.add:hover,
+button.remove, button.remove:hover,
+button.import, button.import:hover,
+button.export, button.export:hover,
+.add-weapon, .add-armor, .add-magic-item, .add-item,
+.add-spell, .add-slot, .add-skill, .add-feat {
+  font-family: 'Solander', sans-serif; 
+  color: black;
+}
+
+/* Special override for active tabs to maintain visibility */
+.character-tabs button.active {
+  background-color: #4CAF50;
+  color: white;
+  border-color: #388E3C;
+}
+
+/* Special override for delete button to maintain visibility */
+.delete-character {
+  background-color: #e53935;
+  color: white;
+  margin: 20px auto;
+  display: block;
+  padding: 8px 16px;
+  font-family: 'Solander', sans-serif;
+}
+
+.delete-character:hover {
+  background-color: #d32f2f;
+  color: white;
+}
+
+/* Ensure form elements also use the font */
+input, select, textarea, button, label {
+  font-family: 'Solander', sans-serif;
 }

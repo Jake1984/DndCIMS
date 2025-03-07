@@ -1,107 +1,134 @@
 import React from "react";
-import { Character } from "../types/CharacterTypes"; // Adjust path if needed
+import { Character } from "./types";
+import { handleAddSkill, handleRemoveSkill, handleAddFeat, handleRemoveFeat } from "./CharacterManagerHandlers";
+import { updateCharacter } from "./CharacterManagerActions";
 
-type CharacterFeatsSkillsProps = {
+interface CharacterFeatsSkillsProps {
   character: Character;
-  updateCharacter: (field: keyof Character, value: any) => void;
-};
+  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+}
 
 const CharacterFeatsSkills: React.FC<CharacterFeatsSkillsProps> = ({
   character,
-  updateCharacter
+  setCharacters
 }) => {
-  console.log("CharacterFeatsSkills Loaded", character); // Debugging
-
   if (!character) {
-    return <p>Loading Character...</p>; // Prevent crashes if character is missing
+    return <p>Loading Character...</p>;
   }
 
-  // Ensure feats and skills are initialized
-  const feats = character.feats || [];
-  const skills = character.skills || [];
-
-  console.log("Feats Data:", feats); // Additional debug info
-
-  // Function to add a new feat
-  const addFeat = () => {
-    const newFeat = { name: "New Feat" };
-    updateCharacter({ ...character, feats: [...feats, newFeat] });
-  };
-
-  // Function to remove a feat
-  const removeFeat = (index: number) => {
-    const updatedFeats = feats.filter((_, i) => i !== index);
-    updateCharacter({ ...character, feats: updatedFeats });
-  };
-
-  // Function to add a new skill
-  const addSkill = () => {
-    const newSkillName = prompt("Enter new skill name:");
-    if (newSkillName) {
-      updateCharacter("skills", [
-        ...skills,
-        { name: newSkillName, value: 0, modifier: 0 }
-      ]);
+  // Add confirmation handler for skill removal
+  const handleConfirmRemoveSkill = (index: number) => {
+    if (window.confirm("Are you sure you want to remove this skill?")) {
+      handleRemoveSkill(character, index, setCharacters);
     }
   };
 
-  // Function to update a skill’s value
-  const updateSkill = (index: number, value: string) => {
-    const updatedSkills = skills.map((skill, i) =>
-      i === index ? { ...skill, value: Number(value) } : skill
-    );
-    updateCharacter("skills", updatedSkills);
-  };
-
-  // Function to remove a skill
-  const removeSkill = (index: number) => {
-    const updatedSkills = skills.filter((_, i) => i !== index);
-    updateCharacter("skills", updatedSkills);
+  // Add confirmation handler for feat removal
+  const handleConfirmRemoveFeat = (index: number) => {
+    if (window.confirm("Are you sure you want to remove this feat?")) {
+      handleRemoveFeat(character, index, setCharacters);
+    }
   };
 
   return (
     <div className="character-section">
-      <h2>Feats & Abilities</h2>
-
-      {/* Feats Section */}
-      <h3>Feats</h3>
-      {feats.length === 0 ? (
-        <p>No feats added yet.</p>
-      ) : (
-        <ul>
-          {feats.map((feat, index) => (
-            <li key={index}>
-              {feat.name}
-              <button onClick={() => removeFeat(index)}>❌</button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <button onClick={addFeat}>➕ Add Feat</button>
+      <h2>Feats & Skills</h2>
 
       {/* Skills Section */}
-      <h3>Skills</h3>
-      {skills.length > 0 ? (
-        <ul>
-          {skills.map((skill, index) => (
-            <li key={index}>
-              {skill.name}:{" "}
-              <input
-                type="number"
-                value={skill.value}
-                onChange={(e) => updateSkill(index, e.target.value)}
-              />
-              {" ("}
-              {skill.modifier >= 0 ? "+" : ""}
-              {skill.modifier})
-              <button onClick={() => removeSkill(index)}>❌</button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No skills available.</p>
-      )}
-      <button onClick={addSkill}>➕ Add Skill</button>
+      <div className="form-section">
+        <div className="section-header">
+          <h3>Skills</h3>
+          <button className="add-skill" onClick={() => handleAddSkill(character, setCharacters)}>
+            <img src="images/add.png" alt="Add" /> Add Skill
+          </button>
+        </div>
+        <div className="skills-list">
+          {character.skills.length === 0 ? (
+            <p>No skills added yet.</p>
+          ) : (
+            character.skills.map((skill, index) => (
+              <div key={index} className="form-group">
+                <input
+                  type="text"
+                  value={skill.name}
+                  onChange={(e) => {
+                    const updatedSkills = [...character.skills];
+                    updatedSkills[index].name = e.target.value;
+                    updateCharacter(character.id, "skills", updatedSkills, setCharacters);
+                  }}
+                />
+                <select
+                  value={skill.ability}
+                  onChange={(e) => {
+                    const updatedSkills = [...character.skills];
+                    updatedSkills[index].ability = e.target.value as keyof Character;
+                    updateCharacter(character.id, "skills", updatedSkills, setCharacters);
+                  }}
+                >
+                  <option value="strength">STR</option>
+                  <option value="dexterity">DEX</option>
+                  <option value="constitution">CON</option>
+                  <option value="intelligence">INT</option>
+                  <option value="wisdom">WIS</option>
+                  <option value="charisma">CHA</option>
+                </select>
+                <input
+                  type="number"
+                  value={skill.bonus}
+                  onChange={(e) => {
+                    const updatedSkills = [...character.skills];
+                    updatedSkills[index].bonus = Number(e.target.value);
+                    updateCharacter(character.id, "skills", updatedSkills, setCharacters);
+                  }}
+                />
+                <button className="remove-button" onClick={() => handleConfirmRemoveSkill(index)}>
+                  <img src="images/remove.png" alt="Remove" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Feats Section */}
+      <div className="form-section feats-section">
+        <div className="section-header">
+          <h3>Feats & Abilities</h3>
+          <button className="add-feat" onClick={() => handleAddFeat(character, setCharacters)}>
+            <img src="images/add.png" alt="Add" /> Add Feat
+          </button>
+        </div>
+        <div className="feats-list">
+          {character.feats.length === 0 ? (
+            <p>No feats or abilities added yet.</p>
+          ) : (
+            character.feats.map((feat, index) => (
+              <div key={index} className="form-group">
+                <input
+                  type="text"
+                  value={feat.name}
+                  onChange={(e) => {
+                    const updatedFeats = [...character.feats];
+                    updatedFeats[index].name = e.target.value;
+                    updateCharacter(character.id, "feats", updatedFeats, setCharacters);
+                  }}
+                />
+                <textarea
+                  value={feat.description || ""}
+                  onChange={(e) => {
+                    const updatedFeats = [...character.feats];
+                    updatedFeats[index].description = e.target.value;
+                    updateCharacter(character.id, "feats", updatedFeats, setCharacters);
+                  }}
+                />
+                <button className="remove-button" onClick={() => handleConfirmRemoveFeat(index)}>
+                  <img src="images/remove.png" alt="Remove" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 };

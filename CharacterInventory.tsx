@@ -1,125 +1,416 @@
 import React from "react";
+import { Character, Weapon, Armor, MagicItem } from "./types";
+import { updateCharacter } from "./CharacterManagerActions";
+import { handleEquipmentImageUpload, handleRemoveEquipment } from "./CharacterManagerHandlers";
 
-const CharacterInventory = ({
-  activeCharacter,
-  handleAddWeapon,
-  handleRemoveWeapon,
-  handleAddArmor,
-  handleRemoveArmor,
-  handleAddMagicItem,
-  handleRemoveMagicItem,
-  handleAddItem,
-  handleRemoveItem,
-  handleUploadImage,
-}) => {
-  if (!activeCharacter) return null;
+interface CharacterInventoryProps {
+  character: Character;
+  setCharacters: React.Dispatch<React.SetStateAction<Character[]>>;
+}
 
+const CharacterInventory: React.FC<CharacterInventoryProps> = ({ character, setCharacters }) => {
+  if (!character) return <div>Loading inventory information...</div>;
+
+  // Handlers for adding equipment
+  const handleAddWeapon = () => {
+    const newWeapon: Weapon = {
+      id: Date.now(),
+      name: "",
+      damage: "",
+      criticalRange: "20",
+      criticalMultiplier: "×2",
+      type: "",
+      description: "",
+      thumbnail: null
+    };
+    
+    updateCharacter(
+      character.id, 
+      "equippedWeapons", 
+      [...character.equippedWeapons, newWeapon], 
+      setCharacters
+    );
+  };
+
+  const handleAddArmor = () => {
+    const newArmor: Armor = {
+      id: Date.now(),
+      name: "",
+      armorBonus: "0",
+      maxDexBonus: "",
+      armorCheckPenalty: "",
+      type: "",
+      description: "",
+      thumbnail: null
+    };
+    
+    updateCharacter(
+      character.id, 
+      "equippedArmor", 
+      [...character.equippedArmor, newArmor], 
+      setCharacters
+    );
+  };
+
+  const handleAddMagicItem = () => {
+    const newItem: MagicItem = {
+      id: Date.now(),
+      name: "",
+      slot: "",
+      description: "",
+      thumbnail: null
+    };
+    
+    updateCharacter(
+      character.id, 
+      "equippedItems", 
+      [...character.equippedItems, newItem], 
+      setCharacters
+    );
+  };
+
+  const handleAddInventoryItem = () => {
+    const newItem = {
+      id: Date.now(),
+      name: "",
+      quantity: "1",
+      description: "",
+      thumbnail: null
+    };
+    
+    updateCharacter(
+      character.id, 
+      "inventory", 
+      [...character.inventory, newItem], 
+      setCharacters
+    );
+  };
+
+  // Handler for image uploads
+  const handleUploadImage = (e, itemType, itemId) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageData = reader.result;
+        
+        const updatedCharacters = setCharacters(prevCharacters => 
+          prevCharacters.map(char => 
+            char.id === character.id 
+              ? { 
+                  ...char, 
+                  [itemType]: char[itemType].map(item => 
+                    item.id === itemId ? { ...item, thumbnail: imageData } : item
+                  )
+                } 
+              : char
+          )
+        );
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handlers with confirmation
+  const handleConfirmRemoveEquipment = (itemId: number, itemType: string) => {
+    if (window.confirm("Are you sure you want to remove this item?")) {
+      handleRemoveEquipment(character.id, itemId, itemType as any, [character], setCharacters);
+    }
+  };
+
+  // Add this function to the component
+  const handleConfirmRemoveInventoryItem = (itemId: number) => {
+    if (window.confirm("Are you sure you want to remove this inventory item?")) {
+      const updatedInventory = character.inventory.filter(i => i.id !== itemId);
+      updateCharacter(character.id, "inventory", updatedInventory, setCharacters);
+    }
+  };
+
+  
   return (
-    <div className="character-inventory">
-      <h3>Equipment & Inventory</h3>
+    <div className="character-section">
+      <h2>Equipment & Inventory</h2>
 
       {/* Weapons Section */}
       <div className="inventory-section">
-        <h4>Weapons</h4>
-        {(activeCharacter.weapons?.length || 0) > 0 ? (
-          activeCharacter.weapons.map((weapon, index) => (
-            <div key={index} className="inventory-entry">
-              {weapon.image && <img src={weapon.image} alt="Weapon" className="item-image" />}
-              <input type="text" placeholder="Weapon Name" value={weapon.name} readOnly />
-              <input type="text" placeholder="Damage" value={weapon.damage} readOnly />
-              <input type="text" placeholder="Properties" value={weapon.properties} readOnly />
-              <input
-                type="file"
-                onChange={(e) => handleUploadImage(e, "weapons", index)}
-                className="file-upload"
-              />
-              <button className="remove-btn" onClick={() => handleRemoveWeapon(index)}>
-                <img src="remove.png" alt="Remove" />
-              </button>
+        <div className="section-header">
+          <h3>Weapons</h3>
+          <button className="add-weapon" onClick={handleAddWeapon}>
+            <img src="images/add.png" alt="Add" /> Add Weapon
+          </button>
+        </div>
+        
+        {character.equippedWeapons.length === 0 ? (
+          <p>No weapons added yet.</p>
+        ) : (
+          character.equippedWeapons.map((weapon) => (
+            <div key={weapon.id} className="inventory-entry">
+              {weapon.thumbnail && <img src={weapon.thumbnail} alt="Weapon" className="item-image" />}
+              <div className="equipment-details">
+                <div className="form-group">
+                  <label>Name</label>
+                  <input 
+                    type="text" 
+                    value={weapon.name}
+                    onChange={(e) => {
+                      const updatedWeapons = character.equippedWeapons.map(w =>
+                        w.id === weapon.id ? { ...w, name: e.target.value } : w
+                      );
+                      updateCharacter(character.id, "equippedWeapons", updatedWeapons, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Damage</label>
+                  <input 
+                    type="text" 
+                    value={weapon.damage}
+                    onChange={(e) => {
+                      const updatedWeapons = character.equippedWeapons.map(w =>
+                        w.id === weapon.id ? { ...w, damage: e.target.value } : w
+                      );
+                      updateCharacter(character.id, "equippedWeapons", updatedWeapons, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Critical</label>
+                  <input 
+                    type="text" 
+                    value={weapon.criticalRange}
+                    onChange={(e) => {
+                      const updatedWeapons = character.equippedWeapons.map(w =>
+                        w.id === weapon.id ? { ...w, criticalRange: e.target.value } : w
+                      );
+                      updateCharacter(character.id, "equippedWeapons", updatedWeapons, setCharacters);
+                    }}
+                  />
+                  <input 
+                    type="text" 
+                    value={weapon.criticalMultiplier}
+                    onChange={(e) => {
+                      const updatedWeapons = character.equippedWeapons.map(w =>
+                        w.id === weapon.id ? { ...w, criticalMultiplier: e.target.value } : w
+                      );
+                      updateCharacter(character.id, "equippedWeapons", updatedWeapons, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Image</label>
+                  <input
+                    type="file"
+                    onChange={(e) => handleUploadImage(e, "equippedWeapons", weapon.id)}
+                  />
+                </div>
+                <button className="remove-button" onClick={() => handleConfirmRemoveEquipment(weapon.id, "equippedWeapons")}>
+                  <img src="images/remove.png" alt="Remove" />
+                </button>
+              </div>
             </div>
           ))
-        ) : (
-          <p>No weapons added yet.</p>
         )}
-        <button className="add-btn" onClick={handleAddWeapon}>
-          <img src="add.png" alt="Add Weapon" />
-        </button>
       </div>
 
       {/* Armor Section */}
       <div className="inventory-section">
-        <h4>Armor</h4>
-        {(activeCharacter.armor?.length || 0) > 0 ? (
-          activeCharacter.armor.map((armor, index) => (
-            <div key={index} className="inventory-entry">
-              {armor.image && <img src={armor.image} alt="Armor" className="item-image" />}
-              <input type="text" placeholder="Armor Name" value={armor.name} readOnly />
-              <input type="text" placeholder="AC Bonus" value={armor.acBonus} readOnly />
-              <input type="text" placeholder="Max Dex" value={armor.maxDex} readOnly />
-              <input
-                type="file"
-                onChange={(e) => handleUploadImage(e, "armor", index)}
-                className="file-upload"
-              />
-              <button className="remove-btn" onClick={() => handleRemoveArmor(index)}>
-                <img src="remove.png" alt="Remove" />
-              </button>
+        <div className="section-header">
+          <h3>Armor</h3>
+          <button className="add-armor" onClick={handleAddArmor}>
+            <img src="images/add.png" alt="Add" /> Add Armor
+          </button>
+        </div>
+        
+        {character.equippedArmor.length === 0 ? (
+          <p>No armor added yet.</p>
+        ) : (
+          character.equippedArmor.map((armor) => (
+            <div key={armor.id} className="inventory-entry">
+              {armor.thumbnail && <img src={armor.thumbnail} alt="Armor" className="item-image" />}
+              <div className="equipment-details">
+                <div className="form-group">
+                  <label>Name</label>
+                  <input 
+                    type="text" 
+                    value={armor.name}
+                    onChange={(e) => {
+                      const updatedArmor = character.equippedArmor.map(a =>
+                        a.id === armor.id ? { ...a, name: e.target.value } : a
+                      );
+                      updateCharacter(character.id, "equippedArmor", updatedArmor, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>AC Bonus</label>
+                  <input 
+                    type="text" 
+                    value={armor.armorBonus}
+                    onChange={(e) => {
+                      const updatedArmor = character.equippedArmor.map(a =>
+                        a.id === armor.id ? { ...a, armorBonus: e.target.value } : a
+                      );
+                      updateCharacter(character.id, "equippedArmor", updatedArmor, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Max Dex Bonus</label>
+                  <input 
+                    type="text" 
+                    value={armor.maxDexBonus || ""}
+                    onChange={(e) => {
+                      const updatedArmor = character.equippedArmor.map(a =>
+                        a.id === armor.id ? { ...a, maxDexBonus: e.target.value } : a
+                      );
+                      updateCharacter(character.id, "equippedArmor", updatedArmor, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Image</label>
+                  <input
+                    type="file"
+                    onChange={(e) => handleUploadImage(e, "equippedArmor", armor.id)}
+                  />
+                </div>
+                <button className="remove-button" onClick={() => handleConfirmRemoveEquipment(armor.id, "equippedArmor")}>
+                  <img src="images/remove.png" alt="Remove" />
+                </button>
+              </div>
             </div>
           ))
-        ) : (
-          <p>No armor added yet.</p>
         )}
-        <button className="add-btn" onClick={handleAddArmor}>
-          <img src="add.png" alt="Add Armor" />
-        </button>
       </div>
 
       {/* Magic Items Section */}
       <div className="inventory-section">
-        <h4>Magic Items</h4>
-        {(activeCharacter.magicItems?.length || 0) > 0 ? (
-          activeCharacter.magicItems.map((item, index) => (
-            <div key={index} className="inventory-entry">
-              {item.image && <img src={item.image} alt="Magic Item" className="item-image" />}
-              <input type="text" placeholder="Item Name" value={item.name} readOnly />
-              <textarea placeholder="Effect" value={item.effect} readOnly />
-              <input
-                type="file"
-                onChange={(e) => handleUploadImage(e, "magicItems", index)}
-                className="file-upload"
-              />
-              <button className="remove-btn" onClick={() => handleRemoveMagicItem(index)}>
-                <img src="remove.png" alt="Remove" />
-              </button>
+        <div className="section-header">
+          <h3>Magic Items</h3>
+          <button className="add-magic-item" onClick={handleAddMagicItem}>
+            <img src="images/add.png" alt="Add" /> Add Magic Item
+          </button>
+        </div>
+        
+        {character.equippedItems.length === 0 ? (
+          <p>No magic items added yet.</p>
+        ) : (
+          character.equippedItems.map((item) => (
+            <div key={item.id} className="inventory-entry">
+              {item.thumbnail && <img src={item.thumbnail} alt="Magic Item" className="item-image" />}
+              <div className="equipment-details">
+                <div className="form-group">
+                  <label>Name</label>
+                  <input 
+                    type="text" 
+                    value={item.name}
+                    onChange={(e) => {
+                      const updatedItems = character.equippedItems.map(i =>
+                        i.id === item.id ? { ...i, name: e.target.value } : i
+                      );
+                      updateCharacter(character.id, "equippedItems", updatedItems, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Slot</label>
+                  <input 
+                    type="text" 
+                    value={item.slot}
+                    onChange={(e) => {
+                      const updatedItems = character.equippedItems.map(i =>
+                        i.id === item.id ? { ...i, slot: e.target.value } : i
+                      );
+                      updateCharacter(character.id, "equippedItems", updatedItems, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <textarea 
+                    value={item.description || ""}
+                    onChange={(e) => {
+                      const updatedItems = character.equippedItems.map(i =>
+                        i.id === item.id ? { ...i, description: e.target.value } : i
+                      );
+                      updateCharacter(character.id, "equippedItems", updatedItems, setCharacters);
+                    }}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Image</label>
+                  <input
+                    type="file"
+                    onChange={(e) => handleUploadImage(e, "equippedItems", item.id)}
+                  />
+                </div>
+                <button className="remove-button" onClick={() => handleConfirmRemoveEquipment(item.id, "equippedItems")}>
+                  <img src="images/remove.png" alt="Remove" />
+                </button>
+              </div>
             </div>
           ))
-        ) : (
-          <p>No magic items added yet.</p>
         )}
-        <button className="add-btn" onClick={handleAddMagicItem}>
-          <img src="add.png" alt="Add Magic Item" />
-        </button>
       </div>
 
       {/* General Inventory Section */}
       <div className="inventory-section">
-        <h4>Inventory</h4>
-        {(activeCharacter.inventory?.length || 0) > 0 ? (
-          activeCharacter.inventory.map((item, index) => (
-            <div key={index} className="inventory-entry">
-              <input type="text" placeholder="Item Name" value={item.name} readOnly />
-              <input type="text" placeholder="Quantity" value={item.quantity} readOnly />
-              <button className="remove-btn" onClick={() => handleRemoveItem(index)}>
-                <img src="remove.png" alt="Remove" />
+        <div className="section-header">
+          <h3>General Inventory</h3>
+          <button className="add-item" onClick={handleAddInventoryItem}>
+            <img src="images/add.png" alt="Add" /> Add Item
+          </button>
+        </div>
+        
+        {character.inventory.length === 0 ? (
+          <p>No items in inventory.</p>
+        ) : (
+          character.inventory.map((item) => (
+            <div key={item.id} className="inventory-entry">
+              <div className="form-group">
+                <label>Name</label>
+                <input 
+                  type="text" 
+                  value={item.name}
+                  onChange={(e) => {
+                    const updatedInventory = character.inventory.map(i =>
+                      i.id === item.id ? { ...i, name: e.target.value } : i
+                    );
+                    updateCharacter(character.id, "inventory", updatedInventory, setCharacters);
+                  }}
+                />
+              </div>
+              <div className="form-group">
+                <label>Quantity</label>
+                <input 
+                  type="text" 
+                  value={item.quantity}
+                  onChange={(e) => {
+                    const updatedInventory = character.inventory.map(i =>
+                      i.id === item.id ? { ...i, quantity: e.target.value } : i
+                    );
+                    updateCharacter(character.id, "inventory", updatedInventory, setCharacters);
+                  }}
+                />
+              </div>
+              <div className="form-group">
+                <label>Description</label>
+                <textarea 
+                  value={item.description || ""}
+                  onChange={(e) => {
+                    const updatedInventory = character.inventory.map(i =>
+                      i.id === item.id ? { ...i, description: e.target.value } : i
+                    );
+                    updateCharacter(character.id, "inventory", updatedInventory, setCharacters);
+                  }}
+                />
+              </div>
+              <button className="remove-button" onClick={() => handleConfirmRemoveInventoryItem(item.id)}>
+                <img src="images/remove.png" alt="Remove" />
               </button>
             </div>
           ))
-        ) : (
-          <p>No items in inventory.</p>
         )}
-        <button className="add-btn" onClick={handleAddItem}>
-          <img src="add.png" alt="Add Item" />
-        </button>
       </div>
     </div>
   );

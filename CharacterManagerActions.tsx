@@ -1,4 +1,4 @@
-import { Character } from "./CharacterManager";
+import { Character } from "./types";
 
 // Helper to save characters to localStorage
 const saveCharacters = (characters: Character[]) => {
@@ -13,11 +13,11 @@ export const addCharacter = (
     id: Date.now(), // Generates a unique ID
     name: "New Character",
     classType: "",
-    level: 1,
+    level: "1",
     race: "",
     alignment: "N",
     deity: "",
-    hp: 1,
+    hp: "1",
     portrait: null,
     background: "",
     personality: "",
@@ -27,7 +27,7 @@ export const addCharacter = (
     intelligence: 9,
     wisdom: 9,
     charisma: 9,
-    bab: 1,
+    bab: "1",
     initiativeBonus: 0,
     fortitude: 0,
     reflex: 0,
@@ -37,16 +37,16 @@ export const addCharacter = (
     domains: [],
     spellSlots: [],
     knownSpells: [],
-    castingProgressions: [],
-    weapons: [],
-    armor: [],
-    magicItems: [],
-    inventory: [],
+    equippedWeapons: [],
+    equippedArmor: [],
+    equippedItems: [],
+    inventory: []
   };
 
   const updatedCharacters = [...characters, newCharacter];
   setCharacters(updatedCharacters);
   localStorage.setItem("characters", JSON.stringify(updatedCharacters));
+  return newCharacter;
 };
 
 export const deleteCharacter = (
@@ -57,9 +57,10 @@ export const deleteCharacter = (
 ) => {
   const updatedCharacters = (characters ?? []).filter(char => char.id !== id);
   setCharacters(updatedCharacters);
-  saveCharacters(updatedCharacters);
+  localStorage.setItem("characters", JSON.stringify(updatedCharacters));
+  
   if (updatedCharacters.length > 0) {
-    setActiveCharacter(updatedCharacters[0].id);
+    setActiveCharacter(0);
   } else {
     setActiveCharacter(null);
   }
@@ -71,11 +72,13 @@ export const updateCharacter = (
   value: any,
   setCharacters: React.Dispatch<React.SetStateAction<Character[]>>
 ) => {
-  setCharacters(prevCharacters =>
-    prevCharacters.map(char =>
+  setCharacters(prevCharacters => {
+    const updatedCharacters = prevCharacters.map(char =>
       char.id === id ? { ...char, [field]: value } : char
-    )
-  );
+    );
+    localStorage.setItem("characters", JSON.stringify(updatedCharacters));
+    return updatedCharacters;
+  });
 };
 
 export const addMagicItemToCharacter = (
